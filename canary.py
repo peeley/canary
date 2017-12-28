@@ -17,28 +17,30 @@ tweets = 0
 
 # opens csv file
 tweetwriter = csv.writer(open('data.csv', 'w'), delimiter=',')
+print(str(the_donald.statuses_count))
 
 # loops through tweets in timeline, pauses on rate limit error
-for p in range(1, int((the_donald.statuses_count)/20)):
+for i in tweepy.Cursor(api.user_timeline, id = 'realDonaldTrump').items():
 	try:
-		for i in api.user_timeline(screen_name='realDonaldTrump', page = p):
-			tweet = api.get_status(i.id, tweet_mode='extended')
-			tweet_text = tweet._json['full_text']
-			if('http' in tweet_text):
-				tweet_text = tweet_text[:tweet_text.find('http')]
-			tweet_time = tweet.created_at
+		tweet = api.get_status(i.id, tweet_mode='extended')
+		tweet_text = tweet._json['full_text']
 
-			# writes to csv file if tweet is not retweet
-			if(not (tweet_text[:2] == 'RT')):
-				tweetwriter.writerow([tweet_text,tweet_time])
-				print(tweet_text) 
-				print('\t %s - Tweet #%i\n' % (str(tweet_time), tweets))
+		#trims links to media from tweets
+		if('http' in tweet_text):
+			tweet_text = tweet_text[:tweet_text.find('http')]
+
+		#writes to csv if tweet is not retweet
+		if(not (tweet_text[:2] == 'RT')):
+			tweetwriter.writerow([tweet_text,tweet_time])
+			tweet_time = tweet.created_at
+			print(tweet_text) 
+			print('\t %s - Tweet #%i\n' % (str(tweet_time), tweets))
 			tweets += 1
+
 	except tweepy.RateLimitError:
-			print('rate limit error!\n')
-			time.sleep(15 * 60)
-			continue
-	print('Page #'+str(p)+'\n')
+		print('rate limit error!\n')
+		time.sleep(15 * 60)
+		continue
 print("ALL DONE!!!")
 
 
