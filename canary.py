@@ -12,51 +12,75 @@ access_token_secret = '0kTiFLNlqcuzjGkBH5rz02caxsVYAUPs6WOaoCrWmmMv5'
 # authenticating app with API keys
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth)
 stop_words = set(stopwords.words('english'))
 
 # initialises API and relevant variables
-api = tweepy.API(auth)
-user_id = 'realDonaldTrump'
-user_posts = api.get_user(id=user_id).statuses_count
-followers = api.friends
-real_tweets = 0
-pages = 0
+uid = 'realDonaldTrump'
+up = api.get_user(id=uid).statuses_count
+tweetnum= 0
+mid = 0
 
 # opens csv file
 tweetwriter = csv.writer(open('data.csv', 'w'), delimiter=',')
+class Crawler:
+	def __init__(self, uid, up, tweetnum, mid, ap):
+		self.user_id = uid
+		self.user_posts = up
+		self.tweets = tweetnum
+		self.max_id = mid
+		self.api = ap
 
-# processes text with nltk, trims sentences of stop words and media links
-def process(str):
-	if('http' in str):
-			str = str[:str.find('http')]
-	tkn = TweetTokenizer()
-	sentence = tkn.tokenize(str)
-	filtered_sentence = [w for w in sentence if not w in stop_words]
-	return (" ".join(filtered_sentence))
+	# processes text with nltk, trims sentences of stop words and media links
+	def process(self, str):
+		if('http' in str):
+				str = str[:str.find('http')]
+		tkn = TweetTokenizer()
+		sentence = tkn.tokenize(str)
+		filtered_sentence = [w for w in sentence if not w in stop_words]
+		return (" ".join(filtered_sentence))
 
-# iterates through entire user's timeline
-for page in tweepy.Cursor(api.user_timeline, count = user_posts, id = user_id).pages():
-	for status in page:
-		try:	
-			tweet = api.get_status(status.id, tweet_mode='extended')
-			tweet_text = process(tweet._json['full_text'])
-			tweet_time = tweet.created_at
-		
-			#writes to csv if tweet is not retweet
-			if(not (tweet_text[:2] == 'RT')):
-				tweetwriter.writerow([tweet_text,tweet_time])	
-				print(tweet_text)
-				print('\t %s - Tweet #%i\n' % (str(tweet_time), real_tweets))
-				real_tweets += 1
-	
+	#used after first iteration through timeline, uses max_id
+	def crawlTimeline(self,name, last=None):
+		try:
+			if last is None:
+				for status in tweepy.Cursor(self.api.user_timeline,id=name).items():	
+#					tweet = self.api.get_status(status.id, tweet_mode='extended')
+#					tweet_text = self.process(tweet._json['full_text'])
+#					tweet_time = tweet.created_at
+				
+					#writes to csv if tweet is not retweet
+#					if(not (tweet_text[:2] == 'RT')):
+#						tweetwriter.writerow([tweet_text,tweet_time])	
+#						print(tweet_text)
+#						print('\t %s - Tweet #%i\n' % (str(tweet_time), self.tweets))
+					self.tweets += 1
+					print(self.tweets)
+					self.max_id = status.id
+			else:
+				for status in tweepy.Cursor(self.api.user_timeline,max_id=last,id=name).items():
+#					tweet = self.api.get_status(status.id, tweet_mode='extended')
+#					tweet_text = self.process(tweet._json['full_text'])
+#					tweet_time = tweet.created_at
+						
+					#writes to csv if tweet is not retweet
+#					if(not (tweet_text[:2] == 'RT')):
+#						tweetwriter.writerow([tweet_text,tweet_time])	
+#						print(tweet_text)
+#						print('\t %s - Tweet #%i\n' % (str(tweet_time), self.tweets))
+					self.tweets += 1
+					print(self.tweets)
+					self.max_id = status.id	
 		# if API encounter rate limit, waits for 1 minute
 		except tweepy.RateLimitError:
-			print('rate limit error! waiting from \t'+ str(datetime.now()))
-			time.sleep(60)	
-	pages += 1
-	print('\tPage: %i \n' % pages)
+				print('rate limit error! waiting from \t'+ str(datetime.now()))
+				time.sleep(60)
+			
+crawl = Crawler(uid,up,tweetnum,mid, api)
+
+while (crawl.tweets < crawl.user_posts):
+	crawl.crawlTimeline(crawl.user_id, crawl.max_id)
 print("ALL DONE!!!")
 
-# TODO: fix problem w/ only retrieving 3180 tweets, not problem with
-# pagination. after that, implement training model & generation of
-# tweets.
+# TODO: fix problem w/ only retrieving 3180 tweets/163 pages.
+# after that, implement training model & generation of tweets.
