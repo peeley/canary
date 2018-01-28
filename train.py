@@ -2,6 +2,7 @@ import pandas as pd
 import markovify
 import spacy
 import time
+import scrape
 
 # adds natural language processing to tweet generation
 nlp = spacy.load('en')
@@ -38,3 +39,6 @@ def generate_tweet(model):
 while(True):
 	print(str(generate_tweet(final_model)) + '\n')
 	time.sleep(2)
+
+c = scrape.Crawler()
+c.api.update_status(generate_Tweet(final_model))
