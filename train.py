@@ -1,8 +1,6 @@
 import pandas as pd
 import markovify
 import spacy
-import time
-import scrape
 
 # adds natural language processing to tweet generation
 nlp = spacy.load('en')
@@ -15,30 +13,30 @@ class POSifiedText(markovify.Text):
         sentence = " ".join(word.split("::")[0] for word in words)
         return sentence
 
-# importing data frame
-tweetframe = pd.read_csv('data.csv')
-text = tweetframe['Text']
-print('Data on ' +str(text.count())+' tweets\n')
+class Trainer():
+	def __init__(self, csvFile, stateSize):
+		frame = pd.read_csv(csvFile)
+		self.data = frame['Text']
+		self.stateSize = stateSize
+		print("TRAINER INIT")
 
-# configuring markov chain
-tweet_models = []
-count = 0
-for i in text:
-	tweet_models.append(markovify.Text(i, state_size = 2 ))
-final_model = markovify.combine(models=tweet_models)
+	# generates Markov chain model
+	def initializeModel(self):
+		print('TRAINER BUILDING MODEL')
+		tweet_models = []
+		for i in self.data:
+			tweet_models.append(markovify.Text(i, self.stateSize ))
+		self.model = markovify.combine(models=tweet_models)
 
-# generates tweet, refuses 'None' content
-def generate_tweet(model):
-	tweet = str(model.make_sentence())
-	if(tweet[:5] == 'None'):
-		return(generate_tweet(model))
-	else:
-		return tweet
-
-# outputs to CLI
-while(True):
-	print(str(generate_tweet(final_model)) + '\n')
-	time.sleep(2)
-
-c = scrape.Crawler()
-c.api.update_status(generate_Tweet(final_model))
+	# adds single tweet to model
+	def addToModel(self, text):
+		print('TRAINER ADDING TO MODEL')
+		self.model = markovify.combine(models=[self.model, text])
+	# generates tweet, refuses 'None' content
+	def generateTweet(self):
+		print('TRAINER GENERATING TWEET')
+		tweet = str(self.model.make_sentence())
+		if(tweet[:5] == 'None'):
+			return(generateTweet(self.model))
+		else:
+			return tweet
