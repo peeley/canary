@@ -1,6 +1,5 @@
 import pandas as pd
-import markovify
-import spacy
+import markovify, time, spacy
 
 # adds natural language processing to tweet generation
 nlp = spacy.load('en')
@@ -15,7 +14,8 @@ class POSifiedText(markovify.Text):
 
 class Trainer():
 	def __init__(self, csvFile, stateSize):
-		frame = pd.read_csv(csvFile)
+		self.csvFile = csvFile
+		frame = pd.read_csv(self.csvFile)
 		self.data = frame['Text']
 		self.stateSize = stateSize
 		print("TRAINER INIT")
@@ -40,3 +40,10 @@ class Trainer():
 			return(generateTweet(self.model))
 		else:
 			return tweet
+
+if __name__ == '__main__':
+	train = Trainer('data.csv', 2)
+	train.initializeModel()
+	while True:
+		print(train.generateTweet()+'\n')
+		time.sleep(2)
