@@ -1,26 +1,31 @@
-import tweepy, csv, scrape, train
+import  scrape, train, tweepy, csv, datetime, numpy, time
+from datetime import datetime
 
-brain = train.Trainer(csvFile='data.csv', stateSize = 2)
-tweetwriter = csv.writer(open(brain.csvFile, 'a'), delimiter=',')
-crawl = scrape.Crawler()
-#crawl.crawlTimeline(tweetwriter)
-brain.initializeModel()
-#for i in range(0,5):
-#	crawl.api.update_status(status = brain.generateTweet())
+fileName = 'data.csv'
+tweetWriter = csv.writer(open(fileName, 'a'), delimiter=',')
+crawl = scrape.Crawler(tweetWriter)
+#crawl.crawlTimeline()
+brain = train.Trainer(csvFile=fileName, stateSize = 2)
 
-class MyStreamListener(tweepy.StreamListener):
-	def on_status(self, status):
-		print("STREAM POST")
-		brain.addToModel(status.text)
-		crawl.process(status, tweetwriter)
-		crawl.api.update_status(brain.generateTweet())
-	def on_error(self):
-		print("STREAM ERROR")
-	def on_timeout(self):
-		print("STREAM TIMEOUT")
 
-myStreamListener = MyStreamListener()
-myStream = tweepy.Stream(auth = crawl.api.auth, listener = myStreamListener)
-print("LISTENING TO STREAM")
-myStream.filter(follow=str(crawl.api.get_user(crawl.user_id).id))
+numpy.random.seed(datetime.now().microsecond)
+maxPost = 3
+postTimes = []
+for i in range(maxPost):
+	postTimes.append(brain.times[numpy.random.randint(brain.times.shape[0])])
+print(postTimes)
+while True :
+	now = datetime.now()
+	nowMinutes = (now.hour*60)+now.minute
+	print(nowMinutes)
+	if(nowMinutes in postTimes):
+		print(brain.generateTweet())
+		crawl.update_status(brain.generateTweet)
+	if(nowMinutes == 0):
+		numpy.random.seed(now.microsecond)
+		for i in range(maxPost):
+			postTimes.append[brain.times[numpy.random.randint(brian.times.shape[0])]]
+		print(postTimes)
+	time.sleep(60)
+
 
