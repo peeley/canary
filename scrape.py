@@ -1,3 +1,10 @@
+'''
+	scrape.py
+	Noah Snelson
+	Crawler object responsible for authenticating Twitter API and crawling
+	user timeline to store tweet ID, text, and time of posting to specified .csv
+'''
+
 import tweepy, csv, time
 import pandas as pd
 from datetime import datetime
@@ -75,7 +82,7 @@ class Crawler:
 				print('rate limit error! waiting from \t'+ str(datetime.now()))
 				time.sleep(60)
 
-# crawls timeline, stores tweets to data.csv
+# for debugging, replicate data for backup
 if __name__ == '__main__':
 	tweetWriter = csv.writer(open('data.csv', 'a'), delimiter=',')
 	crawler = Crawler(tweetWriter)
