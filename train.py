@@ -24,7 +24,7 @@ class Trainer():
 	# Markov chain has state size of 2
 	def __init__(self, csvFile, stateSize=2, maxPosts=3):
 		self.csvFile = csvFile
-		self.data = pd.read_csv(self.csvFile)
+		self.data = pd.read_csv(self.csvFile, engine ='python')
 		self.times = self.data['Time Posted']
 		self.stateSize = stateSize
 		self.maxPosts = maxPosts

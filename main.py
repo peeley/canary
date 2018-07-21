@@ -8,9 +8,7 @@ import  scrape, train, tweepy, csv, datetime, numpy, time
 from datetime import datetime
 
 fileName = 'data.csv'
-tweetWriter = csv.writer(open(fileName, 'w'), delimiter=',')
-crawl = scrape.Crawler(tweetWriter)
-crawl.crawlTimeline()
+crawl = scrape.Crawler()
 
 brain = train.Trainer(csvFile=fileName)
 brain.generateTimes()
@@ -29,10 +27,13 @@ while True :
 		crawl.api.update_status(postText)
 		print('POST SUCCESS\n')
 	
-	# generates new times every day at midnight
+	# scrapes new tweets and generates new times every day at midnight
 	if(nowMinutes == 0):
-		brain.generateTimes()
-
+		with open(fileName, 'w' ) as writer:
+			tweetWriter = csv.writer(writer, delimiter=',')
+			crawl.crawlTimeline(tweetWriter)
+			brain.initializeModel()
+			brain.generateTimes()
 	time.sleep(60)
 
 
