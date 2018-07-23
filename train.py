@@ -36,7 +36,7 @@ class Trainer():
 		print('TRAINER BUILDING MODEL')
 		tweet_models = []
 		for i in self.data['Text']:
-			tweet_models.append(markovify.Text(i, self.stateSize))
+                    tweet_models.append(markovify.Text(str(i), self.stateSize))
 		self.model = markovify.combine(models=tweet_models)
 
 	# adds single tweet to model and adds time of tweet to SVM
@@ -45,14 +45,15 @@ class Trainer():
 		newModel = markovify.Text(text, self.stateSize)
 		self.model = markovify.combine(models=[self.model, newModel])
 
-	# generates tweet, refuses 'None' content
+	# generates tweet, refuses 'None' content by recursive call until non-None content
 	def generateTweet(self):
-		print('TRAINER GENERATING TWEET\n')
+		print('TRAINER GENERATING TWEET...')
 		tweet = str(self.model.make_sentence())
 		if(tweet[:5] == 'None'):
-			return(generateTweet(self.model))
+                    print('TWEET EMPTY, REGENERATING...\n')
+                    return(self.generateTweet())
 		else:
-			return tweet
+                    return tweet
 
 	# schedules n post times where n = self.maxPosts based upon previous 
 	# post times of user

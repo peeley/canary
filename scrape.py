@@ -36,13 +36,11 @@ class Crawler:
 		tweet = self.api.get_status(status.id, tweet_mode='extended')
 		tweet_text = self.trim(tweet._json['full_text'])
 		tweet_time = pd.to_datetime(tweet.created_at, format='%Y-%m-%d %H:%M:%S')
-		tweet_time = int((tweet_time.hour * 60) + tweet_time.minute)
-		#writes to csv if tweet is not retweet
-		if(not (tweet_text[:2] == 'RT')):
-			self.tweets += 1
-			writer.writerow([tweet.id, tweet_text,tweet_time])
-			print(tweet_text)
-			print('\tminute posted: %s | tweet #%i | id:%s\n' % (str(tweet_time), self.tweets, str(tweet.id)))
+		tweet_minute = int((tweet_time.hour * 60) + tweet_time.minute)
+                self.tweets += 1
+                writer.writerow([tweet.id, tweet_text,tweet_minute])
+                print(tweet_text)
+                print('\tminute posted: %s | tweet #%i | id:%s\n' % (str(tweet_time), self.tweets, str(tweet.id)))
 		
 	
 	# trims escape characters, non-unicode out of tweet text
@@ -71,7 +69,7 @@ class Crawler:
 		print("CRAWLING TIMELINE")
 		writer.writerow(['ID','Text','Time Posted'])
 		lastTime = 0
-		for status in tweepy.Cursor(self.api.user_timeline,id=self.user_id).items():
+		for status in tweepy.Cursor(self.api.user_timeline,id=self.user_id, include_rts=False).items():
 			try:
 				if(status.created_at != lastTime):
 					lastTime = status.created_at
